@@ -1,8 +1,7 @@
 /**
- * WebData Pro - Data Constants & Initial Clean Seed
- * All initial completed records set to 0.
- * Product counts, Image Product, and Product Description options set to 0, 1, 2, 3.
- * State and City set to Available / Not Available dropdowns.
+ * WebData Pro - Data Constants & Seed Configuration
+ * 0 completed records initially.
+ * Robust pending queue so submitting moves automatically to the next record.
  */
 
 const APP_CONSTANTS = {
@@ -48,11 +47,40 @@ const APP_CONSTANTS = {
 // Initial completed records start at 0
 const SEED_COMPLETED_RECORDS = [];
 
-// Clean initial pending URLs queue
+// Rich queue of pending URLs for continuous data entry
 const SEED_PENDING_URLS = [
   'http://www.tas.com',
   'http://www.nexustech.io',
   'http://www.globalequip.de',
   'http://www.apexlogistics.com',
-  'http://www.solarmatrix.org'
+  'http://www.solarmatrix.org',
+  'http://www.dynasystems.fr',
+  'http://www.orientalchem.com',
+  'http://www.precisionforge.in',
+  'http://www.valuestream.co.uk',
+  'http://www.vortexmaterials.com',
+  'http://www.titanpack.ca',
+  'http://www.aerocast.it',
+  'http://www.bioenergycorp.com',
+  'http://www.paramountvalves.net',
+  'http://www.stellarcircuits.com',
+  'http://www.primetools.com.au',
+  'http://www.quantumfilters.ch',
+  'http://www.synapseautomation.com',
+  'http://www.oceanicseals.sg',
+  'http://www.summitsteel.jp',
+  'http://www.zenithoptics.com',
+  'http://www.metronpackaging.com',
+  'http://www.hydraulico.dk',
+  'http://www.crystalceramics.es',
+  'http://www.beaconlighting.nl',
+  'http://www.polymertubes.se',
+  'http://www.fusionwelding.com',
+  'http://www.kineticsensors.co',
+  'http://www.durafiber.co.za',
+  'http://www.omnicables.com',
+  'http://www.ecoturbine.fi',
+  'http://www.novapharma.at',
+  'http://www.integrapumps.br',
+  'http://www.pinnaclerubber.mx'
 ];

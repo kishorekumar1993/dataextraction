@@ -1,15 +1,15 @@
 /**
  * WebData Pro - Application Logic
- * Clean state, optional fields, State & City dropdowns ('Available'/'Not Available'),
- * instant saving to Dashboard & Data Tracking table, and Excel export.
+ * No validation blocking. Clicking Submit saves data to tracking dashboard
+ * and immediately advances to the next record in queue.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  const CURRENT_VERSION = 'v3_state_city_dropdown';
+  const CURRENT_VERSION = 'v4_clean_production';
   const STORAGE_KEY_VERSION = 'webdata_pro_app_version';
-  const STORAGE_KEY_RECORDS = 'webdata_pro_completed_records_v3';
-  const STORAGE_KEY_PENDING = 'webdata_pro_pending_urls_v3';
-  const STORAGE_KEY_TODAY = 'webdata_pro_today_count_v3';
+  const STORAGE_KEY_RECORDS = 'webdata_pro_completed_records_v4';
+  const STORAGE_KEY_PENDING = 'webdata_pro_pending_urls_v4';
+  const STORAGE_KEY_TODAY = 'webdata_pro_today_count_v4';
 
   // Application State
   const state = {
@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectProductCount = document.getElementById('selectProductCount');
   const selectProductImage = document.getElementById('selectProductImage');
   const selectProductDescription = document.getElementById('selectProductDescription');
+  const btnSubmitForm = document.getElementById('btnSubmitForm');
   const btnResetForm = document.getElementById('btnResetForm');
 
   // Tracking Table DOM Elements
@@ -218,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // Data Entry Logic (State & City as dropdowns)
+  // Data Entry Logic & Queue Progression
   // =========================================================================
   function loadNextPendingUrlToForm(targetUrl = null) {
     if (targetUrl) {
@@ -231,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       inputWebsiteName.value = state.pendingUrls[state.currentPendingIndex];
     } else {
-      inputWebsiteName.value = '';
+      inputWebsiteName.value = `http://www.site-task-${state.completedRecords.length + 1}.com`;
     }
 
     const totalPending = state.pendingUrls.length;
@@ -257,23 +258,26 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Opening: ${url}`, 'info');
   }
 
-  // Form Submission - Saves whatever fields are filled without mandatory blocks!
-  function handleFormSubmit(e) {
-    if (e) e.preventDefault();
+  // SAVE & SUBMIT RECORD - ZERO VALIDATION ERRORS, ADVANCE TO NEXT RECORD
+  function handleSaveRecord(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
 
     let websiteName = inputWebsiteName.value.trim();
     if (!websiteName) {
-      websiteName = 'http://www.unnamed-site.com';
+      websiteName = `http://www.site-task-${state.completedRecords.length + 1}.com`;
     }
 
     const websiteStatus = selectWebsiteStatus.value || 'Working';
-    const businessType = selectBusinessType.value || 'Other';
+    const businessType = selectBusinessType.value || 'Kind of Business';
     const companyProfile = selectCompanyProfile.value || 'Available';
-    const companyName = inputCompanyName.value.trim() || 'Not Specified';
+    const companyName = inputCompanyName.value.trim() || 'Company name';
     const companyAddress = inputCompanyAddress.value.trim() || '';
-    const country = inputCountry.value.trim() || 'Not Specified';
-    const stateVal = selectState ? (selectState.value || 'Not Available') : 'Not Available';
-    const cityVal = selectCity ? (selectCity.value || 'Not Available') : 'Not Available';
+    const country = inputCountry.value.trim() || 'Country';
+    const stateVal = selectState ? (selectState.value || 'Available') : 'Available';
+    const cityVal = selectCity ? (selectCity.value || 'Available') : 'Available';
     const email = inputEmail.value.trim() || '';
     const secondaryEmail = inputSecondaryEmail.value.trim() || '';
     const phone = inputPhone.value.trim() || '';
@@ -309,15 +313,15 @@ document.addEventListener('DOMContentLoaded', () => {
       completedDate: todayDate
     };
 
-    // Save record to state (newest at top)
+    // 1. Prepend to completed records
     state.completedRecords.unshift(newRecord);
     saveRecordsToStorage();
 
-    // Increment today completed count
+    // 2. Increment today completed count
     state.todayCompletedCount += 1;
     saveTodayToStorage();
 
-    // Remove from pending URLs if present
+    // 3. Remove completed URL from pending queue
     const existingIndex = state.pendingUrls.indexOf(websiteName);
     if (existingIndex !== -1) {
       state.pendingUrls.splice(existingIndex, 1);
@@ -330,18 +334,21 @@ document.addEventListener('DOMContentLoaded', () => {
       state.currentPendingIndex = 0;
     }
 
-    showToast(`✓ Saved: ${companyName} (${websiteName})`, 'success');
-
-    // Reset inputs
+    // 4. Reset form inputs for next record
     resetFormFields();
 
-    // Auto load next pending URL
+    // 5. Auto load NEXT record into the form
     loadNextPendingUrlToForm();
 
-    // Update Dashboard & Tracking tables in real-time
+    // 6. Update Dashboard and Data Tracking Table
     updateUI();
     renderDashboard();
     renderTrackingTable();
+
+    // 7. Show confirmation notification
+    showToast(`✓ Saved to Tracking Dashboard! Next URL loaded.`, 'success');
+
+    return false;
   }
 
   function resetFormFields() {
@@ -474,7 +481,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageRecords.length === 0) {
       trackingTableBody.innerHTML = `
         <tr>
-          <td colspan="13" style="text-align: center; padding: 36px; color: var(--text-muted);">
+          <td colspan="15" style="text-align: center; padding: 36px; color: var(--text-muted);">
             <i class="fa-solid fa-folder-open" style="font-size: 24px; margin-bottom: 8px; display: block; opacity: 0.6;"></i>
             ${state.completedRecords.length === 0 ? 'No completed records yet. Fill answers in Data Entry to start!' : 'No records match your filter criteria.'}
           </td>
@@ -486,6 +493,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const statusBadgeClass = getStatusBadgeClass(rec.websiteStatus);
         const profileBadgeClass = rec.companyProfile === 'Available' ? 'badge-available' : 'badge-notavailable';
+        const stateBadgeClass = rec.state === 'Available' ? 'badge-available' : 'badge-notavailable';
+        const cityBadgeClass = rec.city === 'Available' ? 'badge-available' : 'badge-notavailable';
 
         tr.innerHTML = `
           <td>
@@ -512,6 +521,16 @@ document.addEventListener('DOMContentLoaded', () => {
             </span>
           </td>
           <td>${escapeHtml(rec.country)}</td>
+          <td>
+            <span class="badge-pill ${stateBadgeClass}" style="font-size: 11px; padding: 2px 7px;">
+              ${escapeHtml(rec.state || 'N/A')}
+            </span>
+          </td>
+          <td>
+            <span class="badge-pill ${cityBadgeClass}" style="font-size: 11px; padding: 2px 7px;">
+              ${escapeHtml(rec.city || 'N/A')}
+            </span>
+          </td>
           <td class="cell-address" title="${escapeHtml(rec.address || '')}">
             ${escapeHtml(rec.address || '—')}
           </td>
@@ -894,7 +913,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnClickHere.addEventListener('click', handleOpenWebsite);
-    dataEntryForm.addEventListener('submit', handleFormSubmit);
+
+    // DIRECT CLICK LISTENER on Submit Button (no form refresh, no validation errors!)
+    btnSubmitForm.addEventListener('click', handleSaveRecord);
+
+    // Also handle form submit in case Enter key is pressed
+    dataEntryForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      handleSaveRecord(e);
+      return false;
+    });
 
     btnResetForm.addEventListener('click', () => {
       resetFormFields();

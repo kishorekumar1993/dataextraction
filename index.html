@@ -85,7 +85,7 @@
         </div>
       </div>
 
-      <!-- Stat Cards Grid (6 Cards from Screenshot 4) - All start at 0 -->
+      <!-- Stat Cards Grid (6 Cards from Screenshot 4) -->
       <div class="stat-cards-grid">
         <!-- Card 1: Today Completed -->
         <div class="stat-card">
@@ -217,7 +217,7 @@
     </section>
 
     <!-- ====================================================================
-         VIEW 2: Data Entry (Screenshot 1, 2, 3) - No Mandatory Fields
+         VIEW 2: Data Entry (Screenshot 1, 2, 3) - Zero Errors, No Validation
          ==================================================================== -->
     <section class="view-panel active" id="dataEntryView">
       <div class="content-card">
@@ -234,8 +234,8 @@
           </div>
         </div>
 
-        <!-- Data Entry Form - All fields are optional without blocking -->
-        <form id="dataEntryForm" autocomplete="off" novalidate>
+        <!-- Data Entry Form: onsubmit returns false to prevent any page reload -->
+        <form id="dataEntryForm" autocomplete="off" onsubmit="return false;" action="javascript:void(0);">
           
           <div class="data-entry-grid">
             
@@ -347,7 +347,7 @@
               >
             </div>
 
-            <!-- ROW 3 / COL 2: State -->
+            <!-- ROW 3 / COL 2: State (Dropdown: Available or Not Available) -->
             <div class="form-group">
               <label for="selectState">
                 State:
@@ -359,7 +359,7 @@
               </select>
             </div>
 
-            <!-- ROW 3 / COL 3: City -->
+            <!-- ROW 3 / COL 3: City (Dropdown: Available or Not Available) -->
             <div class="form-group">
               <label for="selectCity">
                 City:
@@ -454,9 +454,9 @@
 
           </div>
 
-          <!-- Bottom Action Buttons: Submit & Reset (Screenshot 1) -->
+          <!-- Bottom Action Buttons: Type="button" ensures no form refresh -->
           <div class="form-actions-row">
-            <button type="submit" class="btn-submit" id="btnSubmitForm">
+            <button type="button" class="btn-submit" id="btnSubmitForm">
               <i class="fa-solid fa-floppy-disk"></i> Submit
             </button>
             <button type="button" class="btn-reset" id="btnResetForm">
@@ -550,6 +550,8 @@
                 <th>Business Type</th>
                 <th>Company Profile</th>
                 <th>Country</th>
+                <th>State</th>
+                <th>City</th>
                 <th>Address</th>
                 <th>Products</th>
                 <th>Image</th>
