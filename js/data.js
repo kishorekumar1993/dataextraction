@@ -1,7 +1,8 @@
 /**
  * WebData Pro - Data Constants & Initial Clean Seed
- * All initial completed records set to 0 as requested by the user.
+ * All initial completed records set to 0.
  * Product counts, Image Product, and Product Description options set to 0, 1, 2, 3.
+ * State and City set to Available / Not Available dropdowns.
  */
 
 const APP_CONSTANTS = {
@@ -31,12 +32,20 @@ const APP_CONSTANTS = {
     'Available',
     'Not Available'
   ],
+  STATE_OPTIONS: [
+    'Available',
+    'Not Available'
+  ],
+  CITY_OPTIONS: [
+    'Available',
+    'Not Available'
+  ],
   PRODUCT_COUNT_OPTIONS: ['0', '1', '2', '3'],
   PRODUCT_IMAGE_OPTIONS: ['0', '1', '2', '3'],
   PRODUCT_DESC_OPTIONS: ['0', '1', '2', '3']
 };
 
-// All items start at ZERO as requested
+// Initial completed records start at 0
 const SEED_COMPLETED_RECORDS = [];
 
 // Clean initial pending URLs queue

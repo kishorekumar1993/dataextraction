@@ -1,18 +1,17 @@
 /**
  * WebData Pro - Application Logic
- * Zero-count initialization, optional fields (no mandatory blocks),
- * instant real-time saving to Dashboard & Data Tracking table, and Excel export.
+ * Clean state, optional fields, State & City dropdowns ('Available'/'Not Available'),
+ * instant saving to Dashboard & Data Tracking table, and Excel export.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Versioning key to clear previous dummy records and start fresh at 0
-  const CURRENT_VERSION = 'v2_clean_zero';
+  const CURRENT_VERSION = 'v3_state_city_dropdown';
   const STORAGE_KEY_VERSION = 'webdata_pro_app_version';
-  const STORAGE_KEY_RECORDS = 'webdata_pro_completed_records_v2';
-  const STORAGE_KEY_PENDING = 'webdata_pro_pending_urls_v2';
-  const STORAGE_KEY_TODAY = 'webdata_pro_today_count_v2';
+  const STORAGE_KEY_RECORDS = 'webdata_pro_completed_records_v3';
+  const STORAGE_KEY_PENDING = 'webdata_pro_pending_urls_v3';
+  const STORAGE_KEY_TODAY = 'webdata_pro_today_count_v3';
 
-  // Application State - Starts with 0 records
+  // Application State
   const state = {
     currentUser: {
       username: 'kishore@01',
@@ -35,13 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
     activeView: 'dataEntryView'
   };
 
-  // DOM Elements - Navigation
+  // Navigation DOM Elements
   const navTabs = document.querySelectorAll('.nav-tab-btn');
   const viewPanels = document.querySelectorAll('.view-panel');
   const navPendingBadge = document.getElementById('navPendingBadge');
   const navCompletedBadge = document.getElementById('navCompletedBadge');
 
-  // DOM Elements - Dashboard
+  // Dashboard DOM Elements
   const statTodayCount = document.getElementById('statTodayCount');
   const statCompletedCount = document.getElementById('statCompletedCount');
   const statPercentage = document.getElementById('statPercentage');
@@ -54,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dashboardRecentTbody = document.getElementById('dashboardRecentTbody');
   const btnGoToFullTable = document.getElementById('btnGoToFullTable');
 
-  // DOM Elements - Data Entry Form
+  // Data Entry Form DOM Elements
   const dataEntryForm = document.getElementById('dataEntryForm');
   const formQueueBadge = document.getElementById('formQueueBadge');
   const inputWebsiteName = document.getElementById('inputWebsiteName');
@@ -65,8 +64,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputCompanyName = document.getElementById('inputCompanyName');
   const inputCompanyAddress = document.getElementById('inputCompanyAddress');
   const inputCountry = document.getElementById('inputCountry');
-  const inputState = document.getElementById('inputState');
-  const inputCity = document.getElementById('inputCity');
+  const selectState = document.getElementById('selectState');
+  const selectCity = document.getElementById('selectCity');
   const inputEmail = document.getElementById('inputEmail');
   const inputSecondaryEmail = document.getElementById('inputSecondaryEmail');
   const inputPhone = document.getElementById('inputPhone');
@@ -75,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectProductDescription = document.getElementById('selectProductDescription');
   const btnResetForm = document.getElementById('btnResetForm');
 
-  // DOM Elements - Tracking Table
+  // Tracking Table DOM Elements
   const filterWebsiteStatus = document.getElementById('filterWebsiteStatus');
   const filterStartDate = document.getElementById('filterStartDate');
   const filterEndDate = document.getElementById('filterEndDate');
@@ -88,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const paginationInfo = document.getElementById('paginationInfo');
   const paginationControls = document.getElementById('paginationControls');
 
-  // DOM Elements - Modals
+  // Modals DOM Elements
   const recordModal = document.getElementById('recordModal');
   const modalRecordBody = document.getElementById('modalRecordBody');
   const btnCloseRecordModal = document.getElementById('btnCloseRecordModal');
@@ -124,7 +123,6 @@ document.addEventListener('DOMContentLoaded', () => {
     renderTrackingTable();
   }
 
-  // Ensure fresh start at 0 if previous dummy version was stored
   function checkAppVersion() {
     try {
       const ver = localStorage.getItem(STORAGE_KEY_VERSION);
@@ -137,14 +135,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load from LocalStorage
   function loadStoredData() {
     try {
       const storedRecords = localStorage.getItem(STORAGE_KEY_RECORDS);
       if (storedRecords) {
         state.completedRecords = JSON.parse(storedRecords);
       } else {
-        // Zero initial records
         state.completedRecords = [];
         saveRecordsToStorage();
       }
@@ -191,12 +187,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // View Navigation & Switching
+  // Navigation Tabs Switching
   // =========================================================================
   function switchView(viewId) {
     state.activeView = viewId;
 
-    // Update nav tab buttons
     navTabs.forEach(btn => {
       if (btn.dataset.target === viewId) {
         btn.classList.add('active');
@@ -205,7 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Update view panels
     viewPanels.forEach(panel => {
       if (panel.id === viewId) {
         panel.classList.add('active');
@@ -214,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Refresh active view
     if (viewId === 'dashboardView') {
       renderDashboard();
     } else if (viewId === 'dataTrackingView') {
@@ -225,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // Data Entry Logic - No Mandatory Constraints
+  // Data Entry Logic (State & City as dropdowns)
   // =========================================================================
   function loadNextPendingUrlToForm(targetUrl = null) {
     if (targetUrl) {
@@ -241,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
       inputWebsiteName.value = '';
     }
 
-    // Update queue badge
     const totalPending = state.pendingUrls.length;
     if (totalPending > 0) {
       const currentNum = state.currentPendingIndex + 1;
@@ -251,7 +243,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Handle "click here" button to preview website
   function handleOpenWebsite() {
     let url = inputWebsiteName.value.trim();
     if (!url) {
@@ -266,7 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Opening: ${url}`, 'info');
   }
 
-  // Form Submission - Saves whatever fields are filled without mandatory blocking!
+  // Form Submission - Saves whatever fields are filled without mandatory blocks!
   function handleFormSubmit(e) {
     if (e) e.preventDefault();
 
@@ -281,8 +272,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const companyName = inputCompanyName.value.trim() || 'Not Specified';
     const companyAddress = inputCompanyAddress.value.trim() || '';
     const country = inputCountry.value.trim() || 'Not Specified';
-    const stateVal = inputState.value.trim() || '';
-    const cityVal = inputCity.value.trim() || '';
+    const stateVal = selectState ? (selectState.value || 'Not Available') : 'Not Available';
+    const cityVal = selectCity ? (selectCity.value || 'Not Available') : 'Not Available';
     const email = inputEmail.value.trim() || '';
     const secondaryEmail = inputSecondaryEmail.value.trim() || '';
     const phone = inputPhone.value.trim() || '';
@@ -335,18 +326,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     savePendingToStorage();
 
-    // Adjust pending index safely
     if (state.currentPendingIndex >= state.pendingUrls.length) {
       state.currentPendingIndex = 0;
     }
 
-    // Success feedback
     showToast(`✓ Saved: ${companyName} (${websiteName})`, 'success');
 
-    // Reset input fields
+    // Reset inputs
     resetFormFields();
 
-    // Auto load next URL
+    // Auto load next pending URL
     loadNextPendingUrlToForm();
 
     // Update Dashboard & Tracking tables in real-time
@@ -358,8 +347,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function resetFormFields() {
     inputCompanyName.value = '';
     inputCompanyAddress.value = '';
-    inputState.value = '';
-    inputCity.value = '';
+    if (selectState) selectState.value = '';
+    if (selectCity) selectCity.value = '';
     inputEmail.value = '';
     inputSecondaryEmail.value = '';
     inputPhone.value = '';
@@ -391,7 +380,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const recents = state.completedRecords.slice(0, 5);
     
     if (recents.length === 0) {
-      dashboardRecentTbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 28px;">No completed records yet. Enter data in the Data Entry tab to start tracking!</td></tr>`;
+      dashboardRecentTbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 28px;">No completed records yet. Enter data in Data Entry to start tracking!</td></tr>`;
       return;
     }
 
@@ -431,12 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   function getFilteredRecords() {
     return state.completedRecords.filter(rec => {
-      // Status filter
       if (state.filters.status !== 'All') {
         if (rec.websiteStatus !== state.filters.status) return false;
       }
 
-      // Date range filter
       if (state.filters.startDate && rec.completedDate < state.filters.startDate) {
         return false;
       }
@@ -444,7 +431,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
       }
 
-      // Text search filter
       if (state.filters.search) {
         const q = state.filters.search.toLowerCase();
         const match = 
@@ -452,6 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
           (rec.companyName && rec.companyName.toLowerCase().includes(q)) ||
           (rec.country && rec.country.toLowerCase().includes(q)) ||
           (rec.city && rec.city.toLowerCase().includes(q)) ||
+          (rec.state && rec.state.toLowerCase().includes(q)) ||
           (rec.businessType && rec.businessType.toLowerCase().includes(q)) ||
           (rec.address && rec.address.toLowerCase().includes(q)) ||
           (rec.email && rec.email.toLowerCase().includes(q));
@@ -477,14 +464,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const endIdx = Math.min(startIdx + pageSize, totalRecords);
     const pageRecords = filtered.slice(startIdx, endIdx);
 
-    // Update banner text
     if (totalRecords === 0) {
       recordsBannerText.textContent = `Showing 0 completed records`;
     } else {
       recordsBannerText.textContent = `Showing ${startIdx + 1} - ${endIdx} of ${totalRecords} completed records`;
     }
 
-    // Render table rows
     trackingTableBody.innerHTML = '';
     if (pageRecords.length === 0) {
       trackingTableBody.innerHTML = `
@@ -556,7 +541,6 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // Render pagination
     renderPagination(totalRecords, totalPages, currentPage);
   }
 
@@ -574,7 +558,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (totalPages <= 1) return;
 
-    // Previous Button
     const prevBtn = document.createElement('button');
     prevBtn.className = 'page-btn';
     prevBtn.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
@@ -587,7 +570,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     paginationControls.appendChild(prevBtn);
 
-    // Page Numbers logic
     let pages = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -620,7 +602,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Next Button
     const nextBtn = document.createElement('button');
     nextBtn.className = 'page-btn';
     nextBtn.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
@@ -789,7 +770,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div class="detail-item">
           <div class="detail-label">State & City</div>
-          <div class="detail-value">${escapeHtml(record.state || '—')}, ${escapeHtml(record.city || '—')}</div>
+          <div class="detail-value">State: ${escapeHtml(record.state || '—')}, City: ${escapeHtml(record.city || '—')}</div>
         </div>
         <div class="detail-item full-width">
           <div class="detail-label">Full Address</div>
@@ -886,14 +867,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event Listeners
   // =========================================================================
   function setupEventListeners() {
-    // Nav tabs
     navTabs.forEach(btn => {
       btn.addEventListener('click', () => {
         switchView(btn.dataset.target);
       });
     });
 
-    // Dashboard actions
     btnContinueWorking.addEventListener('click', () => {
       switchView('dataEntryView');
     });
@@ -914,7 +893,6 @@ document.addEventListener('DOMContentLoaded', () => {
       switchView('dataTrackingView');
     });
 
-    // Form inputs
     btnClickHere.addEventListener('click', handleOpenWebsite);
     dataEntryForm.addEventListener('submit', handleFormSubmit);
 
@@ -923,7 +901,6 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Form fields reset', 'info');
     });
 
-    // Tracking Dashboard Filters
     btnApplyFilter.addEventListener('click', () => {
       state.filters.status = filterWebsiteStatus.value;
       state.filters.startDate = filterStartDate.value;
@@ -951,10 +928,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Export Excel button
     btnExportExcel.addEventListener('click', handleExportExcel);
 
-    // Table delegated actions
     trackingTableBody.addEventListener('click', (e) => {
       const viewBtn = e.target.closest('.btn-view-record');
       if (viewBtn) {
@@ -976,7 +951,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Assignments modal clicks
     assignmentsListContainer.addEventListener('click', (e) => {
       const workBtn = e.target.closest('.btn-work-this');
       if (workBtn) {
@@ -988,7 +962,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Modal Close buttons
     btnCloseRecordModal.addEventListener('click', () => recordModal.classList.remove('active'));
     btnCloseRecordFooter.addEventListener('click', () => recordModal.classList.remove('active'));
     btnCloseAssignmentsModal.addEventListener('click', () => assignmentsModal.classList.remove('active'));
@@ -996,13 +969,11 @@ document.addEventListener('DOMContentLoaded', () => {
     btnCloseLoadDataModal.addEventListener('click', () => loadDataModal.classList.remove('active'));
     btnCancelLoadUrls.addEventListener('click', () => loadDataModal.classList.remove('active'));
 
-    // Export single record from modal
     btnExportSingleRecord.addEventListener('click', () => {
       if (!currentViewingRecord) return;
       downloadCsvFallback([currentViewingRecord]);
     });
 
-    // Load Data Modal Actions
     btnQuickSampleBatch.addEventListener('click', () => {
       bulkUrlsInput.value = [
         'http://www.tas.com',
@@ -1049,7 +1020,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Close modals on overlay backdrop click
     [recordModal, assignmentsModal, loadDataModal].forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('active');
@@ -1057,7 +1027,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Utility: HTML escape
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -1068,6 +1037,5 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
-  // Start app
   init();
 });
