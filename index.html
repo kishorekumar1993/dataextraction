@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Entry & Tracking Portal | WebData Pro</title>
+  <meta name="description" content="Professional web data extraction, verification portal and tracking dashboard with real-time Excel export.">
+  <link rel="stylesheet" href="css/style.css">
+  
+  <!-- Font Awesome CDN for sharp UI icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- SheetJS for pure client-side Excel (.xlsx) export -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+
+  <!-- Top Application Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-section">
+        <div class="brand-logo-icon">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
+        <div class="brand-text">
+          <h1>WebData Pro</h1>
+          <span>Data Entry & Extraction Portal</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" id="navTabs" role="tablist">
+        <button class="nav-tab-btn" data-target="dashboardView" id="tabDashboard">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>User Dashboard</span>
+        </button>
+        <button class="nav-tab-btn active" data-target="dataEntryView" id="tabDataEntry">
+          <i class="fa-solid fa-keyboard"></i>
+          <span>Data Entry</span>
+          <span class="nav-tab-badge" id="navPendingBadge">0</span>
+        </button>
+        <button class="nav-tab-btn" data-target="dataTrackingView" id="tabDataTracking">
+          <i class="fa-solid fa-table-list"></i>
+          <span>Data Tracking Dashboard</span>
+          <span class="nav-tab-badge" id="navCompletedBadge">0</span>
+        </button>
+      </nav>
+
+      <!-- User Profile Header Section -->
+      <div class="header-user-section">
+        <div class="user-quick-profile">
+          <div class="user-avatar-sm">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="user-details-compact">
+            <div class="uname" id="headerUserName">kishore@01</div>
+            <div class="urole" id="headerUserEmail">kishore@admin</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Content Area -->
+  <main class="main-wrapper">
+
+    <!-- ====================================================================
+         VIEW 1: User Dashboard (Screenshot 4)
+         ==================================================================== -->
+    <section class="view-panel" id="dashboardView">
+      
+      <!-- User Profile Header Card -->
+      <div class="dashboard-user-card">
+        <div class="user-profile-header">
+          <div class="user-avatar-large">
+            <i class="fa-regular fa-user"></i>
+          </div>
+          <div class="user-info-text">
+            <h3 id="dashProfileName">kishore@01</h3>
+            <p id="dashProfileEmail">kishore@admin</p>
+          </div>
+        </div>
+        <div class="breadcrumbs">
+          Dashboards &raquo; <span>User Dashboard</span>
+        </div>
+      </div>
+
+      <!-- Stat Cards Grid (6 Cards from Screenshot 4) - All start at 0 -->
+      <div class="stat-cards-grid">
+        <!-- Card 1: Today Completed -->
+        <div class="stat-card">
+          <div class="stat-icon-box icon-blue">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Today Completed URLs</div>
+            <div class="stat-number" id="statTodayCount">0</div>
+            <div class="stat-subtext sub-today">
+              <i class="fa-regular fa-clock"></i> Today
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Total Completed -->
+        <div class="stat-card">
+          <div class="stat-icon-box icon-green">
+            <i class="fa-solid fa-check"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Total Completed Urls</div>
+            <div class="stat-number" id="statCompletedCount">0</div>
+            <div class="stat-subtext sub-green" id="statPercentage">
+              <i class="fa-solid fa-check"></i> 0.0% Complete
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Pending URLs -->
+        <div class="stat-card">
+          <div class="stat-icon-box icon-orange">
+            <i class="fa-regular fa-clock"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Pending URLs</div>
+            <div class="stat-number" id="statPendingCount">0</div>
+            <div class="stat-subtext sub-orange">
+              <i class="fa-solid fa-rotate"></i> In Progress
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 4: Total Assigned -->
+        <div class="stat-card">
+          <div class="stat-icon-box icon-purple-link">
+            <i class="fa-solid fa-link"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Total Assigned URLs</div>
+            <div class="stat-number" id="statAssignedCount">0</div>
+            <div class="stat-subtext sub-purple">
+              <i class="fa-solid fa-share-nodes"></i> All Time
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Data Tracking Dashboard link -->
+        <div class="stat-card clickable" id="cardTrackingShortcut">
+          <div class="stat-icon-box icon-purple-reports">
+            <i class="fa-solid fa-chart-simple"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Data Tracking Dashboard</div>
+            <div class="stat-number" style="font-size: 19px; font-weight: 700; color: #1e293b;">View Reports</div>
+            <div class="stat-subtext sub-purple">
+              <i class="fa-solid fa-chart-line"></i> Reports & Analytics
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Load Data modal trigger -->
+        <div class="stat-card clickable" id="cardLoadDataShortcut">
+          <div class="stat-icon-box icon-purple-data">
+            <i class="fa-solid fa-database"></i>
+          </div>
+          <div class="stat-content">
+            <div class="stat-title">Load Data</div>
+            <div class="stat-number" style="font-size: 19px; font-weight: 700; color: #1e293b;">Load Data</div>
+            <div class="stat-subtext sub-purple">
+              <i class="fa-solid fa-folder-open"></i> Data Import & Assign
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons Row (Screenshot 4) -->
+      <div class="dashboard-actions-card">
+        <button class="btn-action-purple" id="btnViewAssignments">
+          <i class="fa-solid fa-list-check"></i>
+          <span>View My Assignments</span>
+        </button>
+        <button class="btn-action-green" id="btnContinueWorking">
+          <i class="fa-regular fa-circle-play"></i>
+          <span>Continue Working</span>
+        </button>
+      </div>
+
+      <!-- Quick Recent Extracted Data Preview -->
+      <div class="content-card">
+        <div class="card-top-bar">
+          <div class="card-title-group">
+            <h2>Recent Completed Records</h2>
+          </div>
+          <button class="btn-action-purple" style="flex: none; padding: 8px 16px; font-size: 13px;" id="btnGoToFullTable">
+            <i class="fa-solid fa-arrow-right"></i> View Full Tracking Dashboard
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table" id="dashboardRecentTable">
+            <thead>
+              <tr>
+                <th>URL</th>
+                <th>Company Name</th>
+                <th>Website Status</th>
+                <th>Business Type</th>
+                <th>Country</th>
+                <th>Product Count</th>
+                <th>Completed Date</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardRecentTbody">
+              <!-- Dynamically populated from JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ====================================================================
+         VIEW 2: Data Entry (Screenshot 1, 2, 3) - No Mandatory Fields
+         ==================================================================== -->
+    <section class="view-panel active" id="dataEntryView">
+      <div class="content-card">
+        
+        <!-- Header -->
+        <div class="card-top-bar">
+          <div class="card-title-group">
+            <h2>Data Entry</h2>
+          </div>
+          <div class="current-task-badge">
+            <i class="fa-solid fa-list-ol"></i>
+            <span>Task Queue:</span>
+            <span class="queue-count" id="formQueueBadge">0 Pending</span>
+          </div>
+        </div>
+
+        <!-- Data Entry Form - All fields are optional without blocking -->
+        <form id="dataEntryForm" autocomplete="off" novalidate>
+          
+          <div class="data-entry-grid">
+            
+            <!-- ROW 1 / COL 1: Website Name -->
+            <div class="form-group">
+              <label for="inputWebsiteName">
+                Website Name:
+              </label>
+              <div class="website-input-group">
+                <input 
+                  type="text" 
+                  id="inputWebsiteName" 
+                  class="form-control" 
+                  placeholder="http://www.tas.com" 
+                  value="http://www.tas.com"
+                >
+                <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
+                  click here
+                </button>
+              </div>
+            </div>
+
+            <!-- ROW 1 / COL 2: Website Status (Screenshot 2) -->
+            <div class="form-group">
+              <label for="selectWebsiteStatus">
+                Website Status:
+              </label>
+              <select id="selectWebsiteStatus" class="form-control">
+                <option value="">Website Status</option>
+                <option value="Working" selected>Working</option>
+                <option value="Not Working">Not Working</option>
+                <option value="Domain Expired">Domain Expired</option>
+                <option value="Non English">Non English</option>
+                <option value="Under Construction">Under Construction</option>
+                <option value="Flash Site">Flash Site</option>
+                <option value="Redirect Site">Redirect Site</option>
+              </select>
+            </div>
+
+            <!-- ROW 1 / COL 3: Business Type (Screenshot 3) -->
+            <div class="form-group">
+              <label for="selectBusinessType">
+                Business Type:
+              </label>
+              <select id="selectBusinessType" class="form-control">
+                <option value="">Kind of Business</option>
+                <option value="Manufacturer">Manufacturer</option>
+                <option value="Industrial Services">Industrial Services</option>
+                <option value="Exporter">Exporter</option>
+                <option value="Trader">Trader</option>
+                <option value="Distributer">Distributer</option>
+                <option value="Supplier">Supplier</option>
+                <option value="Wholesaler">Wholesaler</option>
+                <option value="Service Provider">Service Provider</option>
+                <option value="Online Shopping">Online Shopping</option>
+                <option value="Restricted Site">Restricted Site</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <!-- ROW 2 / COL 1: Company Profile -->
+            <div class="form-group">
+              <label for="selectCompanyProfile">
+                Company Profile:
+              </label>
+              <select id="selectCompanyProfile" class="form-control">
+                <option value="">Company Profile</option>
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+              </select>
+            </div>
+
+            <!-- ROW 2 / COL 2: Company Name -->
+            <div class="form-group">
+              <label for="inputCompanyName">
+                Company Name:
+              </label>
+              <input 
+                type="text" 
+                id="inputCompanyName" 
+                class="form-control" 
+                placeholder="Company name"
+              >
+            </div>
+
+            <!-- ROW 2 / COL 3: Company Address -->
+            <div class="form-group">
+              <label for="inputCompanyAddress">
+                Company Address:
+              </label>
+              <textarea 
+                id="inputCompanyAddress" 
+                class="form-control" 
+                placeholder="Company Address" 
+                rows="1"
+              ></textarea>
+            </div>
+
+            <!-- ROW 3 / COL 1: Country Name -->
+            <div class="form-group">
+              <label for="inputCountry">
+                Country Name:
+              </label>
+              <input 
+                type="text" 
+                id="inputCountry" 
+                class="form-control" 
+                placeholder="Country"
+              >
+            </div>
+
+            <!-- ROW 3 / COL 2: State -->
+            <div class="form-group">
+              <label for="inputState">
+                State:
+              </label>
+              <input 
+                type="text" 
+                id="inputState" 
+                class="form-control" 
+                placeholder="State"
+              >
+            </div>
+
+            <!-- ROW 3 / COL 3: City -->
+            <div class="form-group">
+              <label for="inputCity">
+                City:
+              </label>
+              <input 
+                type="text" 
+                id="inputCity" 
+                class="form-control" 
+                placeholder="City"
+              >
+            </div>
+
+            <!-- ROW 4 / COL 1: Email Id -->
+            <div class="form-group">
+              <label for="inputEmail">
+                Email Id:
+              </label>
+              <input 
+                type="text" 
+                id="inputEmail" 
+                class="form-control" 
+                placeholder="Email Id"
+              >
+            </div>
+
+            <!-- ROW 4 / COL 2: Secondary Email Id -->
+            <div class="form-group">
+              <label for="inputSecondaryEmail">
+                Secondary Email Id:
+              </label>
+              <input 
+                type="text" 
+                id="inputSecondaryEmail" 
+                class="form-control" 
+                placeholder="Secondary email"
+              >
+            </div>
+
+            <!-- ROW 4 / COL 3: Phone Number -->
+            <div class="form-group">
+              <label for="inputPhone">
+                Phone Number:
+              </label>
+              <input 
+                type="text" 
+                id="inputPhone" 
+                class="form-control" 
+                placeholder="Phone Number"
+              >
+            </div>
+
+            <!-- ROW 5 / COL 1: Number of Product: 0-3 -->
+            <div class="form-group">
+              <label for="selectProductCount">
+                Number of Product:
+              </label>
+              <select id="selectProductCount" class="form-control">
+                <option value="">Number of Product</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <!-- ROW 5 / COL 2: Image Product: 0-3 -->
+            <div class="form-group">
+              <label for="selectProductImage">
+                Image Product:
+              </label>
+              <select id="selectProductImage" class="form-control">
+                <option value="">Image of Product</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <!-- ROW 5 / COL 3: No. of Product Description: 0-3 -->
+            <div class="form-group">
+              <label for="selectProductDescription">
+                No. of Product Description:
+              </label>
+              <select id="selectProductDescription" class="form-control">
+                <option value="">Desc of Product</option>
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- Bottom Action Buttons: Submit & Reset (Screenshot 1) -->
+          <div class="form-actions-row">
+            <button type="submit" class="btn-submit" id="btnSubmitForm">
+              <i class="fa-solid fa-floppy-disk"></i> Submit
+            </button>
+            <button type="button" class="btn-reset" id="btnResetForm">
+              <i class="fa-solid fa-rotate"></i> Reset
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         VIEW 3: Data Tracking Dashboard (Screenshot 5)
+         ==================================================================== -->
+    <section class="view-panel" id="dataTrackingView">
+      
+      <!-- Top Title Bar -->
+      <div class="tracking-title-bar">
+        <h2>Data Tracking Dashboard</h2>
+        <div class="breadcrumbs">
+          Dashboards &raquo; <span>Data Tracking Dashboard</span>
+        </div>
+      </div>
+
+      <div class="tracking-subheading">Extracted Website Data</div>
+
+      <!-- Filter Controls Toolbar (Screenshot 5) -->
+      <div class="filter-toolbar">
+        
+        <div class="filter-item">
+          <label for="filterWebsiteStatus">Website Status</label>
+          <select id="filterWebsiteStatus" class="form-control">
+            <option value="All">All</option>
+            <option value="Working">Working</option>
+            <option value="Not Working">Not Working</option>
+            <option value="Domain Expired">Domain Expired</option>
+            <option value="Non English">Non English</option>
+            <option value="Under Construction">Under Construction</option>
+            <option value="Flash Site">Flash Site</option>
+            <option value="Redirect Site">Redirect Site</option>
+          </select>
+        </div>
+
+        <div class="filter-item">
+          <label for="filterStartDate">Start Date</label>
+          <input type="date" id="filterStartDate" class="form-control">
+        </div>
+
+        <div class="filter-item">
+          <label for="filterEndDate">End Date</label>
+          <input type="date" id="filterEndDate" class="form-control">
+        </div>
+
+        <div class="filter-item" style="flex: 1.5;">
+          <label for="filterSearchText">Search Keywords</label>
+          <input type="text" id="filterSearchText" class="form-control" placeholder="Search URL, Company, Country, Business...">
+        </div>
+
+        <div class="filter-actions">
+          <button type="button" class="btn-filter-purple" id="btnApplyFilter">
+            <i class="fa-solid fa-magnifying-glass"></i> Filter
+          </button>
+          <button type="button" class="btn-filter-reset" id="btnResetFilter">
+            <i class="fa-solid fa-rotate"></i> Reset
+          </button>
+          <button type="button" class="btn-export-excel" id="btnExportExcel" title="Download Excel spreadsheet (.xlsx)">
+            <i class="fa-solid fa-file-excel"></i> Export Excel
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Blue Info Banner -->
+      <div class="records-info-banner" id="recordsBanner">
+        <i class="fa-solid fa-circle-info"></i>
+        <span id="recordsBannerText">Showing 0 completed records</span>
+      </div>
+
+      <!-- Extracted Website Data Table Card -->
+      <div class="table-card">
+        <div class="table-responsive">
+          <table class="data-table" id="trackingDataTable">
+            <thead>
+              <tr>
+                <th>URL</th>
+                <th>Company</th>
+                <th>User Name</th>
+                <th>Website Status</th>
+                <th>Company Name</th>
+                <th>Business Type</th>
+                <th>Company Profile</th>
+                <th>Country</th>
+                <th>Address</th>
+                <th>Products</th>
+                <th>Image</th>
+                <th>Description</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="trackingTableBody">
+              <!-- Dynamically populated from JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Controls -->
+        <div class="pagination-bar">
+          <div class="pagination-info" id="paginationInfo">
+            Showing 0 total records
+          </div>
+          <div class="pagination-controls" id="paginationControls">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ======================================================================
+       MODAL 1: View / Record Detail Modal
+       ====================================================================== -->
+  <div class="modal-overlay" id="recordModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalRecordTitle">Extracted Record Details</h3>
+        <button class="btn-close-modal" id="btnCloseRecordModal">&times;</button>
+      </div>
+      <div class="modal-body" id="modalRecordBody">
+        <!-- Rendered via JS -->
+      </div>
+      <div class="modal-footer">
+        <button class="btn-export-excel" style="height: 38px; font-size: 13px;" id="btnExportSingleRecord">
+          <i class="fa-solid fa-file-excel"></i> Export Record
+        </button>
+        <button class="btn-action-purple" style="flex: none; height: 38px; padding: 0 16px; font-size: 13px;" id="btnCloseRecordFooter">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 2: View My Assignments Queue Modal
+       ====================================================================== -->
+  <div class="modal-overlay" id="assignmentsModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Assigned Pending URLs Queue</h3>
+        <button class="btn-close-modal" id="btnCloseAssignmentsModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
+          Select any pending assigned URL to load it directly into the Data Entry form:
+        </p>
+        <div id="assignmentsListContainer" style="max-height: 400px; overflow-y: auto;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action-purple" style="flex: none; height: 38px; padding: 0 16px; font-size: 13px;" id="btnCloseAssignmentsFooter">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 3: Load Data / Bulk URL Import Modal
+       ====================================================================== -->
+  <div class="modal-overlay" id="loadDataModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Load & Assign New URLs</h3>
+        <button class="btn-close-modal" id="btnCloseLoadDataModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13.5px; color: var(--text-muted); margin-bottom: 12px;">
+          Add website URLs to the pending data entry queue (one URL per line):
+        </p>
+        <textarea 
+          id="bulkUrlsInput" 
+          class="form-control" 
+          rows="7" 
+          style="height: 160px; font-family: monospace; font-size: 13px;"
+          placeholder="http://www.example1.com&#10;http://www.example2.com&#10;http://www.example3.com"
+        ></textarea>
+        <div style="display: flex; gap: 10px; margin-top: 14px;">
+          <button type="button" class="page-btn" id="btnQuickSampleBatch">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Insert Sample URLs
+          </button>
+          <button type="button" class="page-btn" style="color: #ef4444;" id="btnClearAllData">
+            <i class="fa-solid fa-trash-can"></i> Clear All Data (Reset to 0)
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-action-purple" style="flex: none; height: 38px; padding: 0 18px; font-size: 13px;" id="btnConfirmLoadUrls">
+          <i class="fa-solid fa-plus"></i> Add to Queue
+        </button>
+        <button class="btn-filter-reset" style="height: 38px; font-size: 13px;" id="btnCancelLoadUrls">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
