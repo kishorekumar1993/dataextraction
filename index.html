@@ -224,8 +224,11 @@
         
         <!-- Header -->
         <div class="card-top-bar">
-          <div class="card-title-group">
-            <h2>Data Entry</h2>
+          <div class="card-title-group" style="display: flex; align-items: center; gap: 12px;">
+            <h2 id="formViewHeading">Data Entry</h2>
+            <span id="formModeBadge" class="badge-pill" style="display: none; background: #e0e7ff; color: #4338ca; font-size: 11.5px; padding: 4px 10px; font-weight: 700;">
+              <i class="fa-solid fa-pen-to-square"></i> Editing Record
+            </span>
           </div>
           <div class="current-task-badge">
             <i class="fa-solid fa-list-ol"></i>
@@ -241,21 +244,33 @@
             
             <!-- ROW 1 / COL 1: Website Name -->
             <div class="form-group">
-              <label for="inputWebsiteName">
-                Website Name:
-              </label>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label for="inputWebsiteName" style="margin-bottom: 0;">
+                  Website Name:
+                </label>
+                <div class="website-mode-actions" style="display: flex; gap: 6px;">
+                  <button type="button" class="btn-url-helper" id="btnManualUrlMode" title="Clear field to type or paste a custom website URL">
+                    <i class="fa-solid fa-pen"></i> Enter Manually
+                  </button>
+                  <button type="button" class="btn-url-helper" id="btnLoadNextQueueUrl" title="Load next pending URL from queue">
+                    <i class="fa-solid fa-list-check"></i> From Queue
+                  </button>
+                </div>
+              </div>
               <div class="website-input-group">
                 <input 
                   type="text" 
                   id="inputWebsiteName" 
                   class="form-control" 
-                  placeholder="http://www.tas.com" 
-                  value="http://www.tas.com"
+                  placeholder="e.g. http://www.example.com" 
                 >
                 <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
                   click here
                 </button>
               </div>
+              <small class="form-help-text" id="urlHelpText" style="color: var(--text-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+                Queue URL loaded. You can edit it or click "Enter Manually" to type any URL.
+              </small>
             </div>
 
             <!-- ROW 1 / COL 2: Website Status (Screenshot 2) -->
@@ -459,6 +474,9 @@
             <button type="button" class="btn-submit" id="btnSubmitForm">
               <i class="fa-solid fa-floppy-disk"></i> Submit
             </button>
+            <button type="button" class="btn-cancel-edit" id="btnCancelEdit" style="display: none;">
+              <i class="fa-solid fa-xmark"></i> Cancel Edit
+            </button>
             <button type="button" class="btn-reset" id="btnResetForm">
               <i class="fa-solid fa-rotate"></i> Reset
             </button>
@@ -593,11 +611,177 @@
         <!-- Rendered via JS -->
       </div>
       <div class="modal-footer">
+        <button class="btn-action-purple" style="height: 38px; font-size: 13px;" id="btnEditFromViewModal">
+          <i class="fa-regular fa-pen-to-square"></i> Edit Record
+        </button>
         <button class="btn-export-excel" style="height: 38px; font-size: 13px;" id="btnExportSingleRecord">
           <i class="fa-solid fa-file-excel"></i> Export Record
         </button>
-        <button class="btn-action-purple" style="flex: none; height: 38px; padding: 0 16px; font-size: 13px;" id="btnCloseRecordFooter">
+        <button class="btn-filter-reset" style="height: 38px; font-size: 13px;" id="btnCloseRecordFooter">
           Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 1B: Edit Extracted Record Modal
+       ====================================================================== -->
+  <div class="modal-overlay" id="editRecordModal">
+    <div class="modal-card" style="max-width: 820px;">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <h3 id="modalEditTitle">Edit Extracted Record</h3>
+          <span class="badge-pill badge-available" id="modalEditIdBadge" style="font-size: 11px;"></span>
+        </div>
+        <button class="btn-close-modal" id="btnCloseEditModal">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 72vh; overflow-y: auto;">
+        <form id="editRecordForm" autocomplete="off" onsubmit="return false;">
+          <input type="hidden" id="editRecordId">
+          
+          <div class="data-entry-grid" style="grid-template-columns: repeat(3, 1fr); gap: 14px;">
+            <!-- ROW 1 / COL 1-2: Website Name (Editable) -->
+            <div class="form-group" style="grid-column: span 2;">
+              <label for="editWebsiteName">
+                Website URL (Editable):
+              </label>
+              <div class="website-input-group">
+                <input type="text" id="editWebsiteName" class="form-control" placeholder="http://www.example.com">
+                <button type="button" class="btn-click-here" id="btnEditClickHere" title="Open website in new tab">
+                  click here
+                </button>
+              </div>
+            </div>
+
+            <!-- ROW 1 / COL 3: Website Status -->
+            <div class="form-group">
+              <label for="editWebsiteStatus">Website Status:</label>
+              <select id="editWebsiteStatus" class="form-control">
+                <option value="Working">Working</option>
+                <option value="Not Working">Not Working</option>
+                <option value="Domain Expired">Domain Expired</option>
+                <option value="Non English">Non English</option>
+                <option value="Under Construction">Under Construction</option>
+                <option value="Flash Site">Flash Site</option>
+                <option value="Redirect Site">Redirect Site</option>
+              </select>
+            </div>
+
+            <!-- ROW 2: Business Type, Company Profile, Company Name -->
+            <div class="form-group">
+              <label for="editBusinessType">Business Type:</label>
+              <select id="editBusinessType" class="form-control">
+                <option value="Manufacturer">Manufacturer</option>
+                <option value="Industrial Services">Industrial Services</option>
+                <option value="Exporter">Exporter</option>
+                <option value="Trader">Trader</option>
+                <option value="Distributer">Distributer</option>
+                <option value="Supplier">Supplier</option>
+                <option value="Wholesaler">Wholesaler</option>
+                <option value="Service Provider">Service Provider</option>
+                <option value="Online Shopping">Online Shopping</option>
+                <option value="Restricted Site">Restricted Site</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editCompanyProfile">Company Profile:</label>
+              <select id="editCompanyProfile" class="form-control">
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editCompanyName">Company Name:</label>
+              <input type="text" id="editCompanyName" class="form-control" placeholder="Company Name">
+            </div>
+
+            <!-- ROW 3: Address (span 3) -->
+            <div class="form-group" style="grid-column: span 3;">
+              <label for="editCompanyAddress">Company Address:</label>
+              <textarea id="editCompanyAddress" class="form-control" rows="2" placeholder="Company Address"></textarea>
+            </div>
+
+            <!-- ROW 4: Country, State, City -->
+            <div class="form-group">
+              <label for="editCountry">Country Name:</label>
+              <input type="text" id="editCountry" class="form-control" placeholder="Country">
+            </div>
+
+            <div class="form-group">
+              <label for="editState">State:</label>
+              <select id="editState" class="form-control">
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editCity">City:</label>
+              <select id="editCity" class="form-control">
+                <option value="Available">Available</option>
+                <option value="Not Available">Not Available</option>
+              </select>
+            </div>
+
+            <!-- ROW 5: Email, Secondary Email, Phone -->
+            <div class="form-group">
+              <label for="editEmail">Email Id:</label>
+              <input type="text" id="editEmail" class="form-control" placeholder="Email Id">
+            </div>
+
+            <div class="form-group">
+              <label for="editSecondaryEmail">Secondary Email:</label>
+              <input type="text" id="editSecondaryEmail" class="form-control" placeholder="Secondary Email">
+            </div>
+
+            <div class="form-group">
+              <label for="editPhone">Phone Number:</label>
+              <input type="text" id="editPhone" class="form-control" placeholder="Phone Number">
+            </div>
+
+            <!-- ROW 6: Product Count, Image, Description -->
+            <div class="form-group">
+              <label for="editProductCount">Number of Products:</label>
+              <select id="editProductCount" class="form-control">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editProductImage">Image Product:</label>
+              <select id="editProductImage" class="form-control">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="editProductDescription">Product Description:</label>
+              <select id="editProductDescription" class="form-control">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-submit" id="btnSaveEditRecord" style="height: 38px; padding: 0 18px; font-size: 13px;">
+          <i class="fa-solid fa-check"></i> Update Record
+        </button>
+        <button type="button" class="btn-filter-reset" id="btnCancelEditModal" style="height: 38px; font-size: 13px;">
+          Cancel
         </button>
       </div>
     </div>

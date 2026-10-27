@@ -31,7 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
       currentPage: 1,
       pageSize: 50
     },
-    activeView: 'dataEntryView'
+    activeView: 'dataEntryView',
+    isManualUrl: false,
+    editingRecordId: null
   };
 
   // Navigation DOM Elements
@@ -54,9 +56,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnGoToFullTable = document.getElementById('btnGoToFullTable');
 
   // Data Entry Form DOM Elements
+  const formViewHeading = document.getElementById('formViewHeading');
+  const formModeBadge = document.getElementById('formModeBadge');
   const dataEntryForm = document.getElementById('dataEntryForm');
   const formQueueBadge = document.getElementById('formQueueBadge');
   const inputWebsiteName = document.getElementById('inputWebsiteName');
+  const btnManualUrlMode = document.getElementById('btnManualUrlMode');
+  const btnLoadNextQueueUrl = document.getElementById('btnLoadNextQueueUrl');
+  const urlHelpText = document.getElementById('urlHelpText');
   const btnClickHere = document.getElementById('btnClickHere');
   const selectWebsiteStatus = document.getElementById('selectWebsiteStatus');
   const selectBusinessType = document.getElementById('selectBusinessType');
@@ -73,6 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const selectProductImage = document.getElementById('selectProductImage');
   const selectProductDescription = document.getElementById('selectProductDescription');
   const btnSubmitForm = document.getElementById('btnSubmitForm');
+  const btnCancelEdit = document.getElementById('btnCancelEdit');
   const btnResetForm = document.getElementById('btnResetForm');
 
   // Tracking Table DOM Elements
@@ -94,7 +102,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnCloseRecordModal = document.getElementById('btnCloseRecordModal');
   const btnCloseRecordFooter = document.getElementById('btnCloseRecordFooter');
   const btnExportSingleRecord = document.getElementById('btnExportSingleRecord');
+  const btnEditFromViewModal = document.getElementById('btnEditFromViewModal');
   let currentViewingRecord = null;
+
+  // Edit Record Modal DOM Elements
+  const editRecordModal = document.getElementById('editRecordModal');
+  const editRecordForm = document.getElementById('editRecordForm');
+  const editRecordId = document.getElementById('editRecordId');
+  const editWebsiteName = document.getElementById('editWebsiteName');
+  const btnEditClickHere = document.getElementById('btnEditClickHere');
+  const editWebsiteStatus = document.getElementById('editWebsiteStatus');
+  const editBusinessType = document.getElementById('editBusinessType');
+  const editCompanyProfile = document.getElementById('editCompanyProfile');
+  const editCompanyName = document.getElementById('editCompanyName');
+  const editCompanyAddress = document.getElementById('editCompanyAddress');
+  const editCountry = document.getElementById('editCountry');
+  const editState = document.getElementById('editState');
+  const editCity = document.getElementById('editCity');
+  const editEmail = document.getElementById('editEmail');
+  const editSecondaryEmail = document.getElementById('editSecondaryEmail');
+  const editPhone = document.getElementById('editPhone');
+  const editProductCount = document.getElementById('editProductCount');
+  const editProductImage = document.getElementById('editProductImage');
+  const editProductDescription = document.getElementById('editProductDescription');
+  const modalEditIdBadge = document.getElementById('modalEditIdBadge');
+  const btnCloseEditModal = document.getElementById('btnCloseEditModal');
+  const btnCancelEditModal = document.getElementById('btnCancelEditModal');
+  const btnSaveEditRecord = document.getElementById('btnSaveEditRecord');
 
   const assignmentsModal = document.getElementById('assignmentsModal');
   const assignmentsListContainer = document.getElementById('assignmentsListContainer');
@@ -214,19 +248,27 @@ document.addEventListener('DOMContentLoaded', () => {
     } else if (viewId === 'dataTrackingView') {
       renderTrackingTable();
     } else if (viewId === 'dataEntryView') {
-      loadNextPendingUrlToForm();
+      if (!state.isManualUrl && !inputWebsiteName.value.trim() && !state.editingRecordId) {
+        loadNextPendingUrlToForm();
+      }
     }
   }
 
   // =========================================================================
   // Data Entry Logic & Queue Progression
   // =========================================================================
-  function loadNextPendingUrlToForm(targetUrl = null) {
+  function loadNextPendingUrlToForm(targetUrl = null, force = false) {
+    if (!force && state.isManualUrl && inputWebsiteName.value.trim() && !targetUrl) {
+      return;
+    }
+
     if (targetUrl) {
+      state.isManualUrl = false;
       inputWebsiteName.value = targetUrl;
       const idx = state.pendingUrls.indexOf(targetUrl);
       if (idx !== -1) state.currentPendingIndex = idx;
     } else if (state.pendingUrls.length > 0) {
+      state.isManualUrl = false;
       if (state.currentPendingIndex >= state.pendingUrls.length) {
         state.currentPendingIndex = 0;
       }
@@ -241,6 +283,26 @@ document.addEventListener('DOMContentLoaded', () => {
       formQueueBadge.textContent = `${currentNum} of ${totalPending} Pending`;
     } else {
       formQueueBadge.textContent = 'Queue Empty (0 pending)';
+    }
+
+    if (urlHelpText) {
+      if (state.isManualUrl) {
+        urlHelpText.textContent = '✏️ Manual URL mode: You can enter and submit any custom website URL.';
+        urlHelpText.style.color = '#4338ca';
+      } else {
+        urlHelpText.textContent = 'Queue URL loaded. You can edit it or click "Enter Manually" to type any URL.';
+        urlHelpText.style.color = 'var(--text-muted)';
+      }
+    }
+
+    if (btnManualUrlMode && btnLoadNextQueueUrl) {
+      if (state.isManualUrl) {
+        btnManualUrlMode.classList.add('active');
+        btnLoadNextQueueUrl.classList.remove('active');
+      } else {
+        btnManualUrlMode.classList.remove('active');
+        btnLoadNextQueueUrl.classList.add('active');
+      }
     }
   }
 
@@ -258,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showToast(`Opening: ${url}`, 'info');
   }
 
-  // SAVE & SUBMIT RECORD - ZERO VALIDATION ERRORS, ADVANCE TO NEXT RECORD
+  // SAVE & SUBMIT RECORD OR UPDATE EXISTING RECORD
   function handleSaveRecord(e) {
     if (e) {
       e.preventDefault();
@@ -268,6 +330,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let websiteName = inputWebsiteName.value.trim();
     if (!websiteName) {
       websiteName = `http://www.site-task-${state.completedRecords.length + 1}.com`;
+    } else if (!/^https?:\/\//i.test(websiteName)) {
+      websiteName = 'http://' + websiteName;
+      inputWebsiteName.value = websiteName;
     }
 
     const websiteStatus = selectWebsiteStatus.value || 'Working';
@@ -289,7 +354,41 @@ document.addEventListener('DOMContentLoaded', () => {
     const isWorking = websiteStatus === 'Working';
     const statusBadge = isWorking ? 'W-Working' : websiteStatus;
 
-    // Create record object
+    // 1. Check if we are UPDATING an existing record
+    if (state.editingRecordId) {
+      const idx = state.completedRecords.findIndex(r => r.id === state.editingRecordId);
+      if (idx !== -1) {
+        state.completedRecords[idx] = {
+          ...state.completedRecords[idx],
+          url: websiteName,
+          websiteStatus: websiteStatus,
+          statusBadge: statusBadge,
+          companyName: companyName,
+          businessType: businessType,
+          companyProfile: companyProfile,
+          country: country,
+          state: stateVal,
+          city: cityVal,
+          address: companyAddress,
+          email: email,
+          secondaryEmail: secondaryEmail,
+          phone: phone,
+          productCount: productCount,
+          productImage: productImage,
+          productDescription: productDescription,
+          updatedDate: todayDate
+        };
+        saveRecordsToStorage();
+        exitFormEditMode();
+        updateUI();
+        renderDashboard();
+        renderTrackingTable();
+        showToast(`✓ Updated Record & URL: ${websiteName}`, 'success');
+        return false;
+      }
+    }
+
+    // 2. Create new record object
     const newRecord = {
       id: 'rec-' + Date.now(),
       url: websiteName,
@@ -313,45 +412,58 @@ document.addEventListener('DOMContentLoaded', () => {
       completedDate: todayDate
     };
 
-    // 1. Prepend to completed records
+    // Prepend to completed records
     state.completedRecords.unshift(newRecord);
     saveRecordsToStorage();
 
-    // 2. Increment today completed count
+    // Increment today completed count
     state.todayCompletedCount += 1;
     saveTodayToStorage();
 
-    // 3. Remove completed URL from pending queue
+    // Remove from pending queue if matches or if queue mode
     const existingIndex = state.pendingUrls.indexOf(websiteName);
     if (existingIndex !== -1) {
       state.pendingUrls.splice(existingIndex, 1);
-    } else if (state.pendingUrls.length > 0) {
+      savePendingToStorage();
+    } else if (!state.isManualUrl && state.pendingUrls.length > 0) {
       state.pendingUrls.splice(state.currentPendingIndex, 1);
+      savePendingToStorage();
     }
-    savePendingToStorage();
 
     if (state.currentPendingIndex >= state.pendingUrls.length) {
       state.currentPendingIndex = 0;
     }
 
-    // 4. Reset form inputs for next record
+    // Reset form inputs for next record
     resetFormFields();
 
-    // 5. Auto load NEXT record into the form
-    loadNextPendingUrlToForm();
+    // If in manual URL mode, keep field ready for next manual entry
+    if (state.isManualUrl) {
+      inputWebsiteName.value = '';
+      inputWebsiteName.focus();
+      if (urlHelpText) {
+        urlHelpText.textContent = '✏️ Manual URL mode: Ready for next custom website URL.';
+      }
+    } else {
+      // Auto load NEXT queue record into the form
+      loadNextPendingUrlToForm(null, true);
+    }
 
-    // 6. Update Dashboard and Data Tracking Table
+    // Update Dashboard and Data Tracking Table
     updateUI();
     renderDashboard();
     renderTrackingTable();
 
-    // 7. Show confirmation notification
-    showToast(`✓ Saved to Tracking Dashboard! Next URL loaded.`, 'success');
+    // Show confirmation notification
+    showToast(`✓ Saved: ${websiteName} to Tracking Dashboard!`, 'success');
 
     return false;
   }
 
-  function resetFormFields() {
+  function resetFormFields(clearWebsite = false) {
+    if (clearWebsite || state.isManualUrl) {
+      inputWebsiteName.value = '';
+    }
     inputCompanyName.value = '';
     inputCompanyAddress.value = '';
     if (selectState) selectState.value = '';
@@ -365,6 +477,136 @@ document.addEventListener('DOMContentLoaded', () => {
     selectProductCount.value = '0';
     selectProductImage.value = '0';
     selectProductDescription.value = '0';
+  }
+
+  function loadRecordIntoFormForEdit(recordId) {
+    const record = state.completedRecords.find(r => r.id === recordId);
+    if (!record) return;
+
+    state.editingRecordId = record.id;
+    state.isManualUrl = true;
+
+    inputWebsiteName.value = record.url || '';
+    selectWebsiteStatus.value = record.websiteStatus || 'Working';
+    selectBusinessType.value = record.businessType || '';
+    selectCompanyProfile.value = record.companyProfile || '';
+    inputCompanyName.value = record.companyName || '';
+    inputCompanyAddress.value = record.address || '';
+    inputCountry.value = record.country || '';
+    if (selectState) selectState.value = record.state || '';
+    if (selectCity) selectCity.value = record.city || '';
+    inputEmail.value = record.email || '';
+    inputSecondaryEmail.value = record.secondaryEmail || '';
+    inputPhone.value = record.phone || '';
+    selectProductCount.value = record.productCount || '0';
+    selectProductImage.value = record.productImage || '0';
+    selectProductDescription.value = record.productDescription || '0';
+
+    formViewHeading.textContent = 'Edit Record';
+    formModeBadge.style.display = 'inline-flex';
+    formModeBadge.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> Editing Record #${record.id.replace('rec-', '')}`;
+    btnSubmitForm.innerHTML = '<i class="fa-solid fa-check"></i> Update Record';
+    btnSubmitForm.style.background = 'var(--primary)';
+    btnCancelEdit.style.display = 'inline-flex';
+
+    if (urlHelpText) {
+      urlHelpText.textContent = '✏️ Editing existing record. Modify Website URL or any field and click Update Record.';
+      urlHelpText.style.color = '#4338ca';
+    }
+
+    switchView('dataEntryView');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast(`Editing record: ${record.url}`, 'info');
+  }
+
+  function exitFormEditMode() {
+    state.editingRecordId = null;
+    state.isManualUrl = false;
+    formViewHeading.textContent = 'Data Entry';
+    formModeBadge.style.display = 'none';
+    btnSubmitForm.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Submit';
+    btnSubmitForm.style.background = '';
+    btnCancelEdit.style.display = 'none';
+    resetFormFields(true);
+    loadNextPendingUrlToForm(null, true);
+  }
+
+  function openEditRecordModal(recordId) {
+    const record = state.completedRecords.find(r => r.id === recordId);
+    if (!record) return;
+
+    editRecordId.value = record.id;
+    editWebsiteName.value = record.url || '';
+    editWebsiteStatus.value = record.websiteStatus || 'Working';
+    editBusinessType.value = record.businessType || '';
+    editCompanyProfile.value = record.companyProfile || '';
+    editCompanyName.value = record.companyName || '';
+    editCompanyAddress.value = record.address || '';
+    editCountry.value = record.country || '';
+    if (editState) editState.value = record.state || '';
+    if (editCity) editCity.value = record.city || '';
+    editEmail.value = record.email || '';
+    editSecondaryEmail.value = record.secondaryEmail || '';
+    editPhone.value = record.phone || '';
+    editProductCount.value = record.productCount || '0';
+    editProductImage.value = record.productImage || '0';
+    editProductDescription.value = record.productDescription || '0';
+
+    modalEditIdBadge.textContent = `ID: ${record.id.replace('rec-', '')}`;
+    editRecordModal.classList.add('active');
+  }
+
+  function handleSaveEditRecordModal() {
+    const id = editRecordId.value;
+    const idx = state.completedRecords.findIndex(r => r.id === id);
+    if (idx === -1) {
+      showToast('Record not found', 'warning');
+      return;
+    }
+
+    let websiteName = editWebsiteName.value.trim();
+    if (!websiteName) {
+      showToast('Please enter a Website URL', 'warning');
+      editWebsiteName.focus();
+      return;
+    }
+    if (!/^https?:\/\//i.test(websiteName)) {
+      websiteName = 'http://' + websiteName;
+      editWebsiteName.value = websiteName;
+    }
+
+    const websiteStatus = editWebsiteStatus.value || 'Working';
+    const isWorking = websiteStatus === 'Working';
+    const statusBadge = isWorking ? 'W-Working' : websiteStatus;
+
+    state.completedRecords[idx] = {
+      ...state.completedRecords[idx],
+      url: websiteName,
+      websiteStatus: websiteStatus,
+      statusBadge: statusBadge,
+      companyName: editCompanyName.value.trim() || 'Company name',
+      businessType: editBusinessType.value || 'Kind of Business',
+      companyProfile: editCompanyProfile.value || 'Available',
+      country: editCountry.value.trim() || 'Country',
+      state: editState ? (editState.value || 'Available') : 'Available',
+      city: editCity ? (editCity.value || 'Available') : 'Available',
+      address: editCompanyAddress.value.trim() || '',
+      email: editEmail.value.trim() || '',
+      secondaryEmail: editSecondaryEmail.value.trim() || '',
+      phone: editPhone.value.trim() || '',
+      productCount: editProductCount.value || '0',
+      productImage: editProductImage.value || '0',
+      productDescription: editProductDescription.value || '0',
+      updatedDate: new Date().toISOString().split('T')[0]
+    };
+
+    saveRecordsToStorage();
+    editRecordModal.classList.remove('active');
+    renderTrackingTable();
+    renderDashboard();
+    updateUI();
+
+    showToast(`✓ Website URL and Record updated: ${websiteName}`, 'success');
   }
 
   // =========================================================================
@@ -547,8 +789,11 @@ document.addEventListener('DOMContentLoaded', () => {
           </td>
           <td>
             <div class="table-actions">
-              <button class="btn-icon-action btn-view-record" data-id="${rec.id}" title="View Full Details">
+              <button class="btn-icon-action btn-view-record" data-id="${rec.id}" title="View Details">
                 <i class="fa-regular fa-eye"></i>
+              </button>
+              <button class="btn-icon-action edit-action btn-edit-record" data-id="${rec.id}" title="Edit Record & Website URL">
+                <i class="fa-regular fa-pen-to-square"></i>
               </button>
               <button class="btn-icon-action delete-action btn-delete-record" data-id="${rec.id}" title="Delete Record">
                 <i class="fa-regular fa-trash-can"></i>
@@ -842,13 +1087,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const item = document.createElement('div');
         item.className = 'assignment-item';
         item.innerHTML = `
-          <div>
-            <div class="assignment-url">${escapeHtml(url)}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div class="assignment-url" style="word-break: break-all;">${escapeHtml(url)}</div>
             <div class="assignment-index">Task #${i + 1} of ${state.pendingUrls.length}</div>
           </div>
-          <button class="btn-action-purple btn-work-this" data-url="${escapeHtml(url)}" style="flex: none; padding: 8px 14px; font-size: 12.5px;">
-            <i class="fa-solid fa-arrow-right"></i> Work on This
-          </button>
+          <div style="display: flex; gap: 6px; align-items: center; flex: none;">
+            <button class="btn-icon-action edit-action btn-edit-pending-url" data-index="${i}" title="Edit this pending URL">
+              <i class="fa-regular fa-pen-to-square"></i>
+            </button>
+            <button class="btn-action-purple btn-work-this" data-url="${escapeHtml(url)}" style="padding: 7px 12px; font-size: 12px;">
+              <i class="fa-solid fa-arrow-right"></i> Work on This
+            </button>
+          </div>
         `;
         assignmentsListContainer.appendChild(item);
       });
@@ -914,6 +1164,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnClickHere.addEventListener('click', handleOpenWebsite);
 
+    // Manual URL inputs & queue switching listeners
+    inputWebsiteName.addEventListener('input', () => {
+      state.isManualUrl = true;
+      if (btnManualUrlMode && btnLoadNextQueueUrl) {
+        btnManualUrlMode.classList.add('active');
+        btnLoadNextQueueUrl.classList.remove('active');
+      }
+      if (urlHelpText) {
+        urlHelpText.textContent = '✏️ Custom manual URL. Ready to submit and update tracking.';
+        urlHelpText.style.color = '#4338ca';
+      }
+    });
+
+    btnManualUrlMode.addEventListener('click', () => {
+      state.isManualUrl = true;
+      inputWebsiteName.value = '';
+      inputWebsiteName.focus();
+      btnManualUrlMode.classList.add('active');
+      btnLoadNextQueueUrl.classList.remove('active');
+      if (urlHelpText) {
+        urlHelpText.textContent = '✏️ Manual URL mode: Type or paste any website URL.';
+        urlHelpText.style.color = '#4338ca';
+      }
+      showToast('Website URL cleared. Type your custom URL manually.', 'info');
+    });
+
+    btnLoadNextQueueUrl.addEventListener('click', () => {
+      state.isManualUrl = false;
+      btnManualUrlMode.classList.remove('active');
+      btnLoadNextQueueUrl.classList.add('active');
+      loadNextPendingUrlToForm(null, true);
+      showToast('Loaded pending URL from queue.', 'info');
+    });
+
+    btnCancelEdit.addEventListener('click', () => {
+      exitFormEditMode();
+      showToast('Edit cancelled. Reverted to normal data entry.', 'info');
+    });
+
     // DIRECT CLICK LISTENER on Submit Button (no form refresh, no validation errors!)
     btnSubmitForm.addEventListener('click', handleSaveRecord);
 
@@ -925,7 +1214,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     btnResetForm.addEventListener('click', () => {
-      resetFormFields();
+      resetFormFields(state.isManualUrl);
       showToast('Form fields reset', 'info');
     });
 
@@ -965,6 +1254,12 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
 
+      const editBtn = e.target.closest('.btn-edit-record');
+      if (editBtn) {
+        openEditRecordModal(editBtn.dataset.id);
+        return;
+      }
+
       const delBtn = e.target.closest('.btn-delete-record');
       if (delBtn) {
         const id = delBtn.dataset.id;
@@ -980,18 +1275,64 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     assignmentsListContainer.addEventListener('click', (e) => {
+      const editPendingBtn = e.target.closest('.btn-edit-pending-url');
+      if (editPendingBtn) {
+        const idx = parseInt(editPendingBtn.dataset.index, 10);
+        const currentUrl = state.pendingUrls[idx];
+        const newUrl = prompt('Edit pending website URL:', currentUrl);
+        if (newUrl !== null && newUrl.trim() !== '') {
+          state.pendingUrls[idx] = newUrl.trim();
+          savePendingToStorage();
+          openAssignmentsModal();
+          updateUI();
+          if (state.currentPendingIndex === idx && !state.isManualUrl) {
+            loadNextPendingUrlToForm(null, true);
+          }
+          showToast('Pending URL updated in queue', 'success');
+        }
+        return;
+      }
+
       const workBtn = e.target.closest('.btn-work-this');
       if (workBtn) {
         const url = workBtn.dataset.url;
-        loadNextPendingUrlToForm(url);
+        loadNextPendingUrlToForm(url, true);
         assignmentsModal.classList.remove('active');
         switchView('dataEntryView');
         showToast(`Loaded ${url} into Data Entry`, 'info');
       }
     });
 
+    // View Modal listeners
     btnCloseRecordModal.addEventListener('click', () => recordModal.classList.remove('active'));
     btnCloseRecordFooter.addEventListener('click', () => recordModal.classList.remove('active'));
+    btnEditFromViewModal.addEventListener('click', () => {
+      if (!currentViewingRecord) return;
+      const recId = currentViewingRecord.id;
+      recordModal.classList.remove('active');
+      openEditRecordModal(recId);
+    });
+
+    // Edit Modal listeners
+    btnEditClickHere.addEventListener('click', () => {
+      let url = editWebsiteName.value.trim();
+      if (!url) {
+        showToast('Please enter a Website URL', 'warning');
+        return;
+      }
+      if (!/^https?:\/\//i.test(url)) {
+        url = 'http://' + url;
+        editWebsiteName.value = url;
+      }
+      window.open(url, '_blank', 'noopener,noreferrer');
+      showToast(`Opening: ${url}`, 'info');
+    });
+
+    btnSaveEditRecord.addEventListener('click', handleSaveEditRecordModal);
+    btnCloseEditModal.addEventListener('click', () => editRecordModal.classList.remove('active'));
+    btnCancelEditModal.addEventListener('click', () => editRecordModal.classList.remove('active'));
+
+    // Assignments & Load Data Modals
     btnCloseAssignmentsModal.addEventListener('click', () => assignmentsModal.classList.remove('active'));
     btnCloseAssignmentsFooter.addEventListener('click', () => assignmentsModal.classList.remove('active'));
     btnCloseLoadDataModal.addEventListener('click', () => loadDataModal.classList.remove('active'));
@@ -1043,12 +1384,12 @@ document.addEventListener('DOMContentLoaded', () => {
         loadDataModal.classList.remove('active');
         renderTrackingTable();
         renderDashboard();
-        loadNextPendingUrlToForm();
+        loadNextPendingUrlToForm(null, true);
         showToast('All data cleared. Reset to 0.', 'success');
       }
     });
 
-    [recordModal, assignmentsModal, loadDataModal].forEach(modal => {
+    [recordModal, assignmentsModal, loadDataModal, editRecordModal].forEach(modal => {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.remove('active');
       });
