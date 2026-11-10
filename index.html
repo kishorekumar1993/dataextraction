@@ -269,11 +269,14 @@
                   Website Name:
                 </label>
                 <div class="website-mode-actions">
+                  <button type="button" class="btn-url-helper" id="btnCopyUrl" title="Copy URL to clipboard">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
                   <button type="button" class="btn-url-helper" id="btnManualUrlMode" title="Clear field to type or paste a custom website URL">
-                    <i class="fa-solid fa-pen"></i> Enter Manually
+                    <i class="fa-solid fa-pen"></i> Manual
                   </button>
                   <button type="button" class="btn-url-helper active" id="btnLoadNextQueueUrl" title="Load next pending URL from queue">
-                    <i class="fa-solid fa-list-check"></i> From Queue
+                    <i class="fa-solid fa-list-check"></i> Queue
                   </button>
                 </div>
               </div>
@@ -284,17 +287,12 @@
                   class="form-control" 
                   placeholder="e.g. http://www.example.com" 
                 >
-                <div class="website-input-actions">
-                  <button type="button" class="btn-copy-url" id="btnCopyUrl" title="Copy URL to clipboard">
-                    <i class="fa-regular fa-copy"></i>
-                  </button>
-                  <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
-                    click here
-                  </button>
-                </div>
+                <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
+                  click here
+                </button>
               </div>
               <small class="form-help-text" id="urlHelpText">
-                Queue URL loaded. You can edit it or click "Enter Manually" to type any URL.
+                Queue URL loaded. Edit directly or click Manual.
               </small>
             </div>
 
@@ -306,7 +304,7 @@
                 </label>
                 <span class="status-indicator-chip" id="websiteStatusChip">Working</span>
               </div>
-              <select id="selectWebsiteStatus" class="form-control status-is-working">
+              <select id="selectWebsiteStatus" class="form-control">
                 <option value="">Website Status</option>
                 <option value="Working" selected>Working</option>
                 <option value="Not Working">Not Working</option>
@@ -752,19 +750,17 @@
         <form id="editRecordForm" autocomplete="off" onsubmit="return false;">
           <input type="hidden" id="editRecordId">
           
-          <div class="data-entry-grid" style="grid-template-columns: repeat(3, 1fr); gap: 14px;">
+          <div class="data-entry-grid edit-record-grid">
             <!-- ROW 1 / COL 1-2: Website Name (Editable) -->
-            <div class="form-group" style="grid-column: span 2;">
+            <div class="form-group edit-span-2">
               <label for="editWebsiteName">
                 Website URL (Editable):
               </label>
               <div class="website-input-group">
                 <input type="text" id="editWebsiteName" class="form-control" placeholder="http://www.example.com">
-                <div class="website-input-actions">
-                  <button type="button" class="btn-click-here" id="btnEditClickHere" title="Open website in new tab">
-                    click here
-                  </button>
-                </div>
+                <button type="button" class="btn-click-here" id="btnEditClickHere" title="Open website in new tab">
+                  click here
+                </button>
               </div>
             </div>
 
@@ -816,7 +812,7 @@
             </div>
 
             <!-- ROW 3: Address (span 3) -->
-            <div class="form-group" style="grid-column: span 3;">
+            <div class="form-group edit-span-3">
               <label for="editCompanyAddress">Company Address:</label>
               <textarea id="editCompanyAddress" class="form-control" rows="2" placeholder="Company Address"></textarea>
             </div>
