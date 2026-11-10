@@ -24,7 +24,7 @@
         </div>
         <div class="brand-text">
           <h1>WebData Pro</h1>
-          <span>Data Entry & Extraction Portal</span>
+          <span>Data Entry &amp; Extraction Portal</span>
         </div>
       </div>
 
@@ -65,7 +65,7 @@
   <main class="main-wrapper">
 
     <!-- ====================================================================
-         VIEW 1: User Dashboard (Screenshot 4)
+         VIEW 1: User Dashboard
          ==================================================================== -->
     <section class="view-panel" id="dashboardView">
       
@@ -85,7 +85,7 @@
         </div>
       </div>
 
-      <!-- Stat Cards Grid (6 Cards from Screenshot 4) -->
+      <!-- Stat Cards Grid (6 Cards) -->
       <div class="stat-cards-grid">
         <!-- Card 1: Today Completed -->
         <div class="stat-card">
@@ -107,7 +107,7 @@
             <i class="fa-solid fa-check"></i>
           </div>
           <div class="stat-content">
-            <div class="stat-title">Total Completed Urls</div>
+            <div class="stat-title">Total Completed URLs</div>
             <div class="stat-number" id="statCompletedCount">0</div>
             <div class="stat-subtext sub-green" id="statPercentage">
               <i class="fa-solid fa-check"></i> 0.0% Complete
@@ -152,7 +152,7 @@
             <div class="stat-title">Data Tracking Dashboard</div>
             <div class="stat-number" style="font-size: 19px; font-weight: 700; color: #1e293b;">View Reports</div>
             <div class="stat-subtext sub-purple">
-              <i class="fa-solid fa-chart-line"></i> Reports & Analytics
+              <i class="fa-solid fa-chart-line"></i> Reports &amp; Analytics
             </div>
           </div>
         </div>
@@ -166,13 +166,24 @@
             <div class="stat-title">Load Data</div>
             <div class="stat-number" style="font-size: 19px; font-weight: 700; color: #1e293b;">Load Data</div>
             <div class="stat-subtext sub-purple">
-              <i class="fa-solid fa-folder-open"></i> Data Import & Assign
+              <i class="fa-solid fa-folder-open"></i> Data Import &amp; Assign
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Quick Action Buttons Row (Screenshot 4) -->
+      <!-- Status Breakdown Strip -->
+      <div class="status-breakdown-card" id="dashboardStatusBreakdown">
+        <div class="breakdown-header">
+          <span class="breakdown-title"><i class="fa-solid fa-chart-bar"></i> Website Status Breakdown</span>
+          <span class="breakdown-hint">Click a category to filter in Tracking Dashboard</span>
+        </div>
+        <div class="breakdown-pills" id="dashboardBreakdownPills">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons Row -->
       <div class="dashboard-actions-card">
         <button class="btn-action-purple" id="btnViewAssignments">
           <i class="fa-solid fa-list-check"></i>
@@ -205,6 +216,7 @@
                 <th>Country</th>
                 <th>Product Count</th>
                 <th>Completed Date</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody id="dashboardRecentTbody">
@@ -217,7 +229,7 @@
     </section>
 
     <!-- ====================================================================
-         VIEW 2: Data Entry (Screenshot 1, 2, 3) - Zero Errors, No Validation
+         VIEW 2: Data Entry
          ==================================================================== -->
     <section class="view-panel active" id="dataEntryView">
       <div class="content-card">
@@ -230,10 +242,18 @@
               <i class="fa-solid fa-pen-to-square"></i> Editing Record
             </span>
           </div>
-          <div class="current-task-badge">
-            <i class="fa-solid fa-list-ol"></i>
-            <span>Task Queue:</span>
-            <span class="queue-count" id="formQueueBadge">0 Pending</span>
+          <div class="queue-nav-group">
+            <button type="button" class="btn-queue-nav" id="btnPrevQueueUrl" title="Previous pending URL">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <div class="current-task-badge">
+              <i class="fa-solid fa-list-ol"></i>
+              <span>Task Queue:</span>
+              <span class="queue-count" id="formQueueBadge">0 Pending</span>
+            </div>
+            <button type="button" class="btn-queue-nav" id="btnNextQueueUrl" title="Skip to next pending URL">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
           </div>
         </div>
 
@@ -244,15 +264,15 @@
             
             <!-- ROW 1 / COL 1: Website Name -->
             <div class="form-group">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label for="inputWebsiteName" style="margin-bottom: 0;">
+              <div class="form-label-row">
+                <label for="inputWebsiteName">
                   Website Name:
                 </label>
-                <div class="website-mode-actions" style="display: flex; gap: 6px;">
+                <div class="website-mode-actions">
                   <button type="button" class="btn-url-helper" id="btnManualUrlMode" title="Clear field to type or paste a custom website URL">
                     <i class="fa-solid fa-pen"></i> Enter Manually
                   </button>
-                  <button type="button" class="btn-url-helper" id="btnLoadNextQueueUrl" title="Load next pending URL from queue">
+                  <button type="button" class="btn-url-helper active" id="btnLoadNextQueueUrl" title="Load next pending URL from queue">
                     <i class="fa-solid fa-list-check"></i> From Queue
                   </button>
                 </div>
@@ -264,21 +284,29 @@
                   class="form-control" 
                   placeholder="e.g. http://www.example.com" 
                 >
-                <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
-                  click here
-                </button>
+                <div class="website-input-actions">
+                  <button type="button" class="btn-copy-url" id="btnCopyUrl" title="Copy URL to clipboard">
+                    <i class="fa-regular fa-copy"></i>
+                  </button>
+                  <button type="button" class="btn-click-here" id="btnClickHere" title="Open website in new tab">
+                    click here
+                  </button>
+                </div>
               </div>
-              <small class="form-help-text" id="urlHelpText" style="color: var(--text-muted); font-size: 11.5px; margin-top: 4px; display: block;">
+              <small class="form-help-text" id="urlHelpText">
                 Queue URL loaded. You can edit it or click "Enter Manually" to type any URL.
               </small>
             </div>
 
-            <!-- ROW 1 / COL 2: Website Status (Screenshot 2) -->
+            <!-- ROW 1 / COL 2: Website Status -->
             <div class="form-group">
-              <label for="selectWebsiteStatus">
-                Website Status:
-              </label>
-              <select id="selectWebsiteStatus" class="form-control">
+              <div class="form-label-row">
+                <label for="selectWebsiteStatus">
+                  Website Status:
+                </label>
+                <span class="status-indicator-chip" id="websiteStatusChip">Working</span>
+              </div>
+              <select id="selectWebsiteStatus" class="form-control status-is-working">
                 <option value="">Website Status</option>
                 <option value="Working" selected>Working</option>
                 <option value="Not Working">Not Working</option>
@@ -290,11 +318,13 @@
               </select>
             </div>
 
-            <!-- ROW 1 / COL 3: Business Type (Screenshot 3) -->
+            <!-- ROW 1 / COL 3: Business Type -->
             <div class="form-group">
-              <label for="selectBusinessType">
-                Business Type:
-              </label>
+              <div class="form-label-row">
+                <label for="selectBusinessType">
+                  Business Type:
+                </label>
+              </div>
               <select id="selectBusinessType" class="form-control">
                 <option value="">Kind of Business</option>
                 <option value="Manufacturer">Manufacturer</option>
@@ -471,15 +501,20 @@
 
           <!-- Bottom Action Buttons: Type="button" ensures no form refresh -->
           <div class="form-actions-row">
-            <button type="button" class="btn-submit" id="btnSubmitForm">
-              <i class="fa-solid fa-floppy-disk"></i> Submit
-            </button>
-            <button type="button" class="btn-cancel-edit" id="btnCancelEdit" style="display: none;">
-              <i class="fa-solid fa-xmark"></i> Cancel Edit
-            </button>
-            <button type="button" class="btn-reset" id="btnResetForm">
-              <i class="fa-solid fa-rotate"></i> Reset
-            </button>
+            <span class="shortcut-hint">
+              <i class="fa-regular fa-keyboard"></i> Tip: Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to Submit
+            </span>
+            <div class="form-actions-buttons">
+              <button type="button" class="btn-submit" id="btnSubmitForm">
+                <i class="fa-solid fa-floppy-disk"></i> Submit
+              </button>
+              <button type="button" class="btn-cancel-edit" id="btnCancelEdit" style="display: none;">
+                <i class="fa-solid fa-xmark"></i> Cancel Edit
+              </button>
+              <button type="button" class="btn-reset" id="btnResetForm">
+                <i class="fa-solid fa-rotate"></i> Reset
+              </button>
+            </div>
           </div>
 
         </form>
@@ -488,7 +523,7 @@
     </section>
 
     <!-- ====================================================================
-         VIEW 3: Data Tracking Dashboard (Screenshot 5)
+         VIEW 3: Data Tracking Dashboard
          ==================================================================== -->
     <section class="view-panel" id="dataTrackingView">
       
@@ -502,7 +537,12 @@
 
       <div class="tracking-subheading">Extracted Website Data</div>
 
-      <!-- Filter Controls Toolbar (Screenshot 5) -->
+      <!-- Quick Status Filter Chips -->
+      <div class="quick-status-chips" id="quickStatusChips">
+        <!-- Dynamically populated -->
+      </div>
+
+      <!-- Filter Controls Toolbar -->
       <div class="filter-toolbar">
         
         <div class="filter-item">
@@ -531,7 +571,7 @@
 
         <div class="filter-item" style="flex: 1.5;">
           <label for="filterSearchText">Search Keywords</label>
-          <input type="text" id="filterSearchText" class="form-control" placeholder="Search URL, Company, Country, Business...">
+          <input type="text" id="filterSearchText" class="form-control" placeholder="Search URL, Company, Country, Email, Business...">
         </div>
 
         <div class="filter-actions">
@@ -550,8 +590,18 @@
 
       <!-- Blue Info Banner -->
       <div class="records-info-banner" id="recordsBanner">
-        <i class="fa-solid fa-circle-info"></i>
-        <span id="recordsBannerText">Showing 0 completed records</span>
+        <div class="records-banner-left">
+          <i class="fa-solid fa-circle-info"></i>
+          <span id="recordsBannerText">Showing 0 completed records</span>
+        </div>
+        <div class="records-banner-right">
+          <label for="selectPageSize" class="page-size-label">Rows:</label>
+          <select id="selectPageSize" class="page-size-select">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
       </div>
 
       <!-- Extracted Website Data Table Card -->
@@ -570,6 +620,7 @@
                 <th>Country</th>
                 <th>State</th>
                 <th>City</th>
+                <th>Email / Phone</th>
                 <th>Address</th>
                 <th>Products</th>
                 <th>Image</th>
@@ -599,6 +650,67 @@
   </main>
 
   <!-- ======================================================================
+       MODAL 0: "Not Working" Confirmation Required Popup (Matching Screenshot)
+       ====================================================================== -->
+  <div class="modal-overlay confirm-overlay" id="notWorkingConfirmModal" role="dialog" aria-modal="true" aria-labelledby="notWorkingModalTitle">
+    <div class="confirm-modal-card">
+      <div class="confirm-modal-header">
+        <div class="confirm-header-title">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>Confirmation Required</span>
+        </div>
+        <button type="button" class="btn-close-confirm" id="btnCloseNotWorkingModal" aria-label="Close">&times;</button>
+      </div>
+      <div class="confirm-modal-body">
+        <div class="confirm-question-icon" aria-hidden="true">
+          <i class="fa-solid fa-question"></i>
+        </div>
+        <h3 id="notWorkingModalTitle">Are You Sure?</h3>
+        <p id="notWorkingModalDesc">You are about to mark this website as "Not Working".</p>
+        <div class="confirm-url-preview" id="notWorkingUrlPreview"></div>
+        <div class="confirm-modal-actions">
+          <button type="button" class="btn-confirm-cancel" id="btnNotWorkingConfirmCancel">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+          <button type="button" class="btn-confirm-ok" id="btnNotWorkingConfirmOk">
+            <i class="fa-solid fa-check"></i> OK
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL 0B: General Action Confirmation Modal (Delete / Clear Data)
+       ====================================================================== -->
+  <div class="modal-overlay confirm-overlay" id="actionConfirmModal" role="dialog" aria-modal="true">
+    <div class="confirm-modal-card">
+      <div class="confirm-modal-header">
+        <div class="confirm-header-title">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span id="actionConfirmHeader">Confirmation Required</span>
+        </div>
+        <button type="button" class="btn-close-confirm" id="btnCloseActionConfirm">&times;</button>
+      </div>
+      <div class="confirm-modal-body">
+        <div class="confirm-question-icon" aria-hidden="true">
+          <i class="fa-solid fa-question"></i>
+        </div>
+        <h3 id="actionConfirmTitle">Are You Sure?</h3>
+        <p id="actionConfirmDesc">This action cannot be undone.</p>
+        <div class="confirm-modal-actions">
+          <button type="button" class="btn-confirm-cancel" id="btnActionConfirmCancel">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+          <button type="button" class="btn-confirm-ok" id="btnActionConfirmOk">
+            <i class="fa-solid fa-check"></i> OK
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
        MODAL 1: View / Record Detail Modal
        ====================================================================== -->
   <div class="modal-overlay" id="recordModal">
@@ -611,7 +723,7 @@
         <!-- Rendered via JS -->
       </div>
       <div class="modal-footer">
-        <button class="btn-action-purple" style="height: 38px; font-size: 13px;" id="btnEditFromViewModal">
+        <button class="btn-action-purple" style="flex: none; height: 38px; padding: 0 16px; font-size: 13px;" id="btnEditFromViewModal">
           <i class="fa-regular fa-pen-to-square"></i> Edit Record
         </button>
         <button class="btn-export-excel" style="height: 38px; font-size: 13px;" id="btnExportSingleRecord">
@@ -648,9 +760,11 @@
               </label>
               <div class="website-input-group">
                 <input type="text" id="editWebsiteName" class="form-control" placeholder="http://www.example.com">
-                <button type="button" class="btn-click-here" id="btnEditClickHere" title="Open website in new tab">
-                  click here
-                </button>
+                <div class="website-input-actions">
+                  <button type="button" class="btn-click-here" id="btnEditClickHere" title="Open website in new tab">
+                    click here
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -672,6 +786,7 @@
             <div class="form-group">
               <label for="editBusinessType">Business Type:</label>
               <select id="editBusinessType" class="form-control">
+                <option value="">Kind of Business</option>
                 <option value="Manufacturer">Manufacturer</option>
                 <option value="Industrial Services">Industrial Services</option>
                 <option value="Exporter">Exporter</option>
@@ -689,6 +804,7 @@
             <div class="form-group">
               <label for="editCompanyProfile">Company Profile:</label>
               <select id="editCompanyProfile" class="form-control">
+                <option value="">Company Profile</option>
                 <option value="Available">Available</option>
                 <option value="Not Available">Not Available</option>
               </select>
@@ -714,6 +830,7 @@
             <div class="form-group">
               <label for="editState">State:</label>
               <select id="editState" class="form-control">
+                <option value="">State</option>
                 <option value="Available">Available</option>
                 <option value="Not Available">Not Available</option>
               </select>
@@ -722,6 +839,7 @@
             <div class="form-group">
               <label for="editCity">City:</label>
               <select id="editCity" class="form-control">
+                <option value="">City</option>
                 <option value="Available">Available</option>
                 <option value="Not Available">Not Available</option>
               </select>
@@ -797,9 +915,12 @@
         <button class="btn-close-modal" id="btnCloseAssignmentsModal">&times;</button>
       </div>
       <div class="modal-body">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-          Select any pending assigned URL to load it directly into the Data Entry form:
-        </p>
+        <div class="assignments-toolbar">
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+            Select any pending assigned URL to load it directly into the Data Entry form:
+          </p>
+          <input type="text" id="assignmentsSearchInput" class="form-control" style="height: 36px; font-size: 13px; max-width: 240px;" placeholder="Filter pending URLs...">
+        </div>
         <div id="assignmentsListContainer" style="max-height: 400px; overflow-y: auto;">
           <!-- Dynamically populated -->
         </div>
@@ -813,12 +934,39 @@
   </div>
 
   <!-- ======================================================================
+       MODAL 2B: Edit Pending URL Modal (replaces native prompt)
+       ====================================================================== -->
+  <div class="modal-overlay" id="editPendingUrlModal">
+    <div class="modal-card" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3>Edit Pending Website URL</h3>
+        <button type="button" class="btn-close-modal" id="btnCloseEditPendingModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editPendingIndex">
+        <div class="form-group">
+          <label for="editPendingUrlInput">Website URL:</label>
+          <input type="text" id="editPendingUrlInput" class="form-control" placeholder="http://www.example.com">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-submit" id="btnSavePendingUrl" style="height: 38px; padding: 0 18px; font-size: 13px;">
+          <i class="fa-solid fa-check"></i> Save URL
+        </button>
+        <button type="button" class="btn-filter-reset" id="btnCancelEditPending" style="height: 38px; font-size: 13px;">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
        MODAL 3: Load Data / Bulk URL Import Modal
        ====================================================================== -->
   <div class="modal-overlay" id="loadDataModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>Load & Assign New URLs</h3>
+        <h3>Load &amp; Assign New URLs</h3>
         <button class="btn-close-modal" id="btnCloseLoadDataModal">&times;</button>
       </div>
       <div class="modal-body">
@@ -832,7 +980,7 @@
           style="height: 160px; font-family: monospace; font-size: 13px;"
           placeholder="http://www.example1.com&#10;http://www.example2.com&#10;http://www.example3.com"
         ></textarea>
-        <div style="display: flex; gap: 10px; margin-top: 14px;">
+        <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
           <button type="button" class="page-btn" id="btnQuickSampleBatch">
             <i class="fa-solid fa-wand-magic-sparkles"></i> Insert Sample URLs
           </button>
